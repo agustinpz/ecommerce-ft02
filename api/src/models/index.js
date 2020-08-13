@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const db = require("db.js");
 
+
 const basename = path.basename(__filename);
 const models = {};
 
@@ -13,14 +14,13 @@ fs.readdirSync(__dirname)
       file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".js"
   )
   .forEach((file) => {
-    console.log(file);
     const model = models.conn.import(path.join(__dirname, file));
     const name = file.split(".")[0];
     models[name] = model;
   });
 
 const { Product } = models;
-
-// Add model relationships here
+const { Category } = models;
+const { Order } = models;
 
 module.exports = models;

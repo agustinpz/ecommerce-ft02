@@ -1,51 +1,49 @@
 const { Router } = require("express");
-const authRouter = require("./auth.js");
-const { Product } = require("../models");
 const router = Router();
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
-router.get("/", function (req, res, next) {
-  Product.findAll({}).then(function (product) {
-    if (!product) {
-      return res.status(404).send("No hay productos en la tienda");
-    }
-    res.render("Producto", { product });
-  });
-});
+const { Product } = require("../models/");
+const { Category } = require("../models/");
+const { Order } = require("../models/");
+const { User } = require("../models/");
+const { OrderDetails } = require("../models/");
+const { Reviews } = require("../models/");
 
-router.get("/:id", function (req, res, next) {
-  Product.findByPk(req.params.id).then(function (product) {
-    if (!product) {
-      return res.status(404).send("Producto Inexistente");
-    }
-    res.render("Producto", { product });
-  });
-});
+const authRouter = require("./auth.js");
+const routerProducts = require("./routerProducts.js");
+const routerCategory = require("./routerCategory.js");
+const routerOrder = require("./routerOrder.js");
+const routerUser = require("./routerUser.js");
 
-router.post("/", function (req, res, next) {
-  Product.findOrCreate({
-    where: { id: req.body.id },
-  })
-    .then(function (newProduct) {
-      return newProduct.create({
-        title: req.body.title,
-        urlTitle: req.body.urlTitle,
-        description: req.body.description,
-        images: req.body.images,
-        price: req.body.price,
-        color: req.body.color,
-      });
-    })
-    .then(function (newProduct) {
-      res.redirect(newProduct.urlTitle);
-    });
-  // .then(function (newProduct) {
-  //   res.redirect(JSON.parse(newProduct.urlTitle));
-  // });
-});
 
-// load each router on a route
-// i.e: router.use('/auth', authRouter);
+
 router.use("/auth", authRouter);
-// router.use('/products', productRouter);
+router.use("/products", routerProducts);
+router.use("/category", routerCategory);
+router.use("/order", routerOrder);
+router.use("/user", routerUser);
+
+// RELACIONES ENTRE TABLAS //
+
+Product.belongsToMany(Category, { through: "products_categories" });
+Category.belongsToMany(Product, { through: "products_categories" });
+
+
+Order.belongsToMany(Product, { through: OrderDetails });
+Product.belongsToMany(Order, { through: OrderDetails });
+
+
+
+Product.belongsToMany(Reviews, { through: 'product_Reviews' });
+Reviews.belongsTo(Product, { through: 'product_Reviews' });
+
+
+User.belongsToMany(Reviews, { through: 'user_review' });
+Reviews.belongsTo(User, { through: 'user_review' })
+
+
+
 
 module.exports = router;
+
